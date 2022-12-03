@@ -18,7 +18,9 @@ namespace AgbinaDiffParser
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             var mainForm = new Form1();
-            Application.Run();
+            mainForm.ReadFiles();
+            //Application.Run();
+            
         }
     }
 }

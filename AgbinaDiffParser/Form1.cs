@@ -16,16 +16,6 @@
         public Form1()
         {
             InitializeComponent();
-
-            Dictionary<string, (int, string)> oldCells = OpenFile("Select old file");
-            if (oldCells != null)
-            {
-                Dictionary<string, (int, string)> newCells = OpenFile("Select new file");
-                var removedKeys = oldCells.Keys.Except(newCells.Keys);
-                var addedKeys = newCells.Keys.Except(oldCells.Keys);
-                var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => $"{o.Key} | {o.Value.Item2} | row: {o.Value.Item1}").ToArray();
-                var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => $"{n.Key} | {n.Value.Item2} | row: {n.Value.Item1}").ToArray();
-            }
         }
 
         private Dictionary<string, (int, string)> OpenFile(string openDialogTitle)
@@ -79,5 +69,17 @@
             }
         }
 
+        public void ReadFiles()
+        {
+            Dictionary<string, (int, string)> oldCells = OpenFile("Select old file");
+            if (oldCells != null)
+            {
+                Dictionary<string, (int, string)> newCells = OpenFile("Select new file");
+                var removedKeys = oldCells.Keys.Except(newCells.Keys);
+                var addedKeys = newCells.Keys.Except(oldCells.Keys);
+                var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => $"{o.Key} | {o.Value.Item2} | row: {o.Value.Item1}").ToArray();
+                var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => $"{n.Key} | {n.Value.Item2} | row: {n.Value.Item1}").ToArray();
+            }
+        }
     }
 }
