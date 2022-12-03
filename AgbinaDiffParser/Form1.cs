@@ -17,38 +17,31 @@
         {
             InitializeComponent();
 
-            openFileDialog1.Title = "Select old file";
-            Dictionary<string, (int, string)> oldCells;
+            Dictionary<string, (int, string)> oldCells = OpenFile("Select old file");
+            if (oldCells != null)
+            {
+                Dictionary<string, (int, string)> newCells = OpenFile("Select new file");
+                var removedKeys = oldCells.Keys.Except(newCells.Keys);
+                var addedKeys = newCells.Keys.Except(oldCells.Keys);
+                var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => $"{o.Key} | {o.Value.Item2} | row: {o.Value.Item1}").ToArray();
+                var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => $"{n.Key} | {n.Value.Item2} | row: {n.Value.Item1}").ToArray();
+            }
+        }
+
+        private Dictionary<string, (int, string)> OpenFile(string openDialogTitle)
+        {
             try
             {
-                oldCells = ReadExcelFile();
+                openFileDialog1.Title = openDialogTitle;
+                return ReadExcelFile();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"Couldn't old read file. Error: {ex.Message}");
                 this.Close();
                 Application.Exit();
-                return;
+                return null;
             }
-
-            openFileDialog1.Title = "Select new file";
-            Dictionary<string, (int, string)> newCells;
-            try
-            {
-                newCells = ReadExcelFile();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Couldn't read new file. Error: {ex.Message}");
-                this.Close();
-                Application.Exit();
-                return;
-            }
-
-            var removedKeys = oldCells.Keys.Except(newCells.Keys);
-            var addedKeys = newCells.Keys.Except(oldCells.Keys);
-            var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => $"{o.Key} | {o.Value.Item2} | row: {o.Value.Item1}").ToArray();
-            var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => $"{n.Key} | {n.Value.Item2} | row: {n.Value.Item1}").ToArray();
         }
 
         private Dictionary<string, (int, string)> ReadExcelFile()
@@ -60,7 +53,7 @@
                 var xlApp = new App();
                 var xlWorkBook = xlApp.Workbooks.Open(openFileDialog1.FileName);
                 var xlWorkSheet = (Worksheet)xlWorkBook.Worksheets[1];
-                for (int i = 1; i <= xlWorkSheet.Rows.Count; i++)
+                for (int i = 2; i <= xlWorkSheet.Rows.Count; i++)
                 {
                     var value = ((Range)xlWorkSheet.Cells[i, 1]).Value?.ToString();
                     if (value == null) break;
