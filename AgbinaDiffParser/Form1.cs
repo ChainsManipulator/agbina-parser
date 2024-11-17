@@ -4,12 +4,8 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.InteropServices;
     using System.Windows.Forms;
-    using Microsoft.Office.Interop.Excel;
-    using App = Microsoft.Office.Interop.Excel.Application;
-    using Application = System.Windows.Forms.Application;
-    using Range = Microsoft.Office.Interop.Excel.Range;
+    using ExcelDataReader;
 
     public partial class Form1 : Form
     {
@@ -40,27 +36,22 @@
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var result = new Dictionary<string, (int, string)>();
-                var xlApp = new App();
-                var xlWorkBook = xlApp.Workbooks.Open(openFileDialog1.FileName);
-                var xlWorkSheet = (Worksheet)xlWorkBook.Worksheets[1];
-                for (int i = 2; i <= xlWorkSheet.Rows.Count; i++)
+
+                using var stream = File.Open(openFileDialog1.FileName, FileMode.Open, FileAccess.Read);
+                using var reader = ExcelReaderFactory.CreateReader(stream);
+
+                reader.Read();
+                int i = 2;
+                while (reader.Read())
                 {
-                    var value = ((Range)xlWorkSheet.Cells[i, 1]).Value?.ToString();
-                    if (value == null) break;
+                    var value = reader.GetString(0);
+                    if (string.IsNullOrEmpty(value)) break;
                     int j = 2;
-                    while (((Range)xlWorkSheet.Cells[i, j]).Value == null) j++;
-                    result.Add(value, (i, ((Range)xlWorkSheet.Cells[i, j]).Value?.ToString()));
+                    while (string.IsNullOrEmpty(reader.GetString(j))) j++;
+                    result.Add(value, (i, reader.GetString(j)));
+                    i++;
                 }
 
-                Marshal.ReleaseComObject(xlWorkSheet);
-
-                //close and release
-                xlWorkBook.Close();
-                Marshal.ReleaseComObject(xlWorkBook);
-
-                //quit and release
-                xlApp.Quit();
-                Marshal.ReleaseComObject(xlApp);
                 return result;
             }
             else
@@ -77,9 +68,20 @@
                 Dictionary<string, (int, string)> newCells = OpenFile("Select new file");
                 var removedKeys = oldCells.Keys.Except(newCells.Keys);
                 var addedKeys = newCells.Keys.Except(oldCells.Keys);
-                var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => $"{o.Key} | {o.Value.Item2} | row: {o.Value.Item1}").ToArray();
-                var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => $"{n.Key} | {n.Value.Item2} | row: {n.Value.Item1}").ToArray();
+                var removedRecords = oldCells.Where(o => removedKeys.Contains(o.Key)).Select(o => (o.Value.Item1, o.Key, o.Value.Item2));
+                var addedRecords = newCells.Where(n => addedKeys.Contains(n.Key)).Select(n => (n.Value.Item1, n.Key, n.Value.Item2));
+
+                foreach ((int, string, string) v in addedRecords)
+                {
+                    dataGridView1.Rows.Add(v.Item1, v.Item2, v.Item3);
+                }
+
+                foreach ((int, string, string) v in removedRecords)
+                {
+                    dataGridView2.Rows.Add(v.Item1, v.Item2, v.Item3);
+                }
             }
         }
+
     }
 }

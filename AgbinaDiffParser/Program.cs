@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
 namespace AgbinaDiffParser
 {
+    using System;
+    using System.Windows.Forms;
+
     static class Program
     {
         /// <summary>
@@ -17,10 +14,10 @@ namespace AgbinaDiffParser
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             var mainForm = new Form1();
             mainForm.ReadFiles();
-            //Application.Run();
-            
+            Application.Run(mainForm);
         }
     }
 }
